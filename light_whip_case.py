@@ -1,5 +1,6 @@
 from build123d import *
 from ocp_vscode import *
+from bd_warehouse.fastener import IsoThread
 
 MM = 1
 
@@ -79,42 +80,13 @@ with BuildPart() as whip_head_enclosure:
         )
 
     # Threads for attaching to LED head
-    with Locations(led_cutout.faces().sort_by(Axis.Z)[0]):
-        with BuildLine() as coil_path:
-            male_thread = Helix(
-                pitch=2.5 * MM,
-                height=led_funnel_height,
-                radius=cylinder_interior_radius - 0.35 * MM,
-                cone_angle=0,
-                center=led_cutout.faces().sort_by(Axis.Z)[0].position,
-                direction=(0, 0, 1),
-            )
-        with BuildSketch(Plane(
-            origin=male_thread @ 0, z_dir=male_thread % 0
-        )) as thread_sketch:
-            Circle(radius=0.7 * MM)
-
-    sweep(is_frenet=True)
-
-    # Delete dangling threads
-    with Locations(led_cutout.faces().sort_by(Axis.Z)[0]):
-        Cylinder(
-            height=2,
-            radius=cylinder_interior_radius + enclosure_thickness,
-            mode=Mode.SUBTRACT,
-            rotation=(0, 0, 180),
-            align=(Align.CENTER, Align.CENTER, Align.MIN)
+    with Locations(led_cutout.faces().sort_by(Axis.Z)[-1].position - (0, 0, 0)):
+        IsoThread(
+            external=False,
+            major_diameter=cylinder_interior_radius * 2,
+            pitch=2.2 * MM,
+            length=6 * MM,
         )
-
-    with Locations(led_cutout.faces().sort_by(Axis.Z)[-1]):
-        Cylinder(
-            height=2,
-            radius=cylinder_interior_radius,
-            mode=Mode.SUBTRACT,
-            rotation=(0, 0, 180),
-            align=(Align.CENTER, Align.CENTER, Align.MIN)
-        )
-
 
 
 

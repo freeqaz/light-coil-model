@@ -3,7 +3,7 @@ from ocp_vscode import *
 
 MM = 1
 
-(length_debug, height, width, thickness) = (50.0, 3.5 * MM, 4.5 * MM, 1.5 * MM)
+(length_debug, height, width, thickness) = (50.0, 2.8 * MM, 4.5 * MM, 1.5 * MM)
 
 cutout_height = 1.5 * MM
 cutout_bottom_width = 1.8 * MM
@@ -48,13 +48,13 @@ with BuildPart() as ex8:
             Polygon(cutout_pnts, rotation=-90, mode=Mode.SUBTRACT)        
 
     # Makes the 2d shape into a coil
-    # sweep(
-    #     # Required to make the coil "straight" as it spirals
-    #     is_frenet=True,
-    # )
+    sweep(
+        # Required to make the coil "straight" as it spirals
+        is_frenet=True,
+    )
 
     # Uncomment to view design as "block"
-    extrude(amount=length_debug)
+    # extrude(amount=length_debug)
 
 
 show(

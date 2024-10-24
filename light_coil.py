@@ -3,7 +3,7 @@ from ocp_vscode import *
 
 MM = 1
 
-(length_debug, height, width, thickness) = (50.0, 2.8 * MM, 4.5 * MM, 1.5 * MM)
+(length_debug, height, width) = (50.0, 2.8 * MM, 4.5 * MM)
 
 cutout_height = 1.5 * MM
 cutout_bottom_width = 1.8 * MM
@@ -44,7 +44,7 @@ with BuildPart() as ex8:
         Plane(origin=helix @ 0, z_dir=helix % 0)
     ) as ex8_sk:
         Rectangle(height, width)
-        with Locations((height / 2 - thickness / 2, 0)):
+        with Locations((height / 2 - cutout_height / 2, 0)):
             Polygon(cutout_pnts, rotation=-90, mode=Mode.SUBTRACT)        
 
     # Makes the 2d shape into a coil

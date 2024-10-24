@@ -17,6 +17,10 @@ conda create -y --name build123d python==3.11.9
 Install deps
 ```
 conda install -c conda-forge -c cadquery ocp
+
+pip install "https://github.com/CadQuery/ocp-build-system/releases/download/7.7.2.0/cadquery_ocp-7.7.2-cp311-cp311-macosx_11_0_arm64.whl"
+
+python3 -m pip install git+https://github.com/gumyr/bd_warehouse
 ```
 
 Install VS Code extension called "OCP Cad Viewer"

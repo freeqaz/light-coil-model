@@ -91,7 +91,7 @@ with BuildPart() as whip_head_enclosure:
     with Locations(led_cutout.faces().sort_by(Axis.Z)[-1].position - (0, 0, led_spacer_height)):
         IsoThread(
             external=False,
-            major_diameter=cylinder_interior_radius * 2 + thread_radius * 2 + thread_tolerance / 2,
+            major_diameter=cylinder_interior_radius * 2 + thread_radius * 2 - thread_tolerance / 2,
             pitch=3.5 * MM,
             length=led_spacer_height - 5 * MM,
             # align=[Align.CENTER, Align.CENTER, Align.MAX]
@@ -106,7 +106,7 @@ with BuildPart() as whip_led_head:
     # Has a small hole for the LED to shine through at the bottom of the cone.
 
     # Compute necessary dimensions
-    cylinder_interior_radius = fiber_head_outer_diameter / 2 + fiber_head_tolerance / 2 - 0.35
+    cylinder_interior_radius = fiber_head_outer_diameter / 2 + fiber_head_tolerance / 2 - 0.3
     thread_radius = 2 * MM
     thread_tolerance = 0.2 * MM
     major_diameter = cylinder_interior_radius * 2 + thread_radius * 2 - thread_tolerance / 2

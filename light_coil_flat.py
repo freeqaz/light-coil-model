@@ -63,30 +63,6 @@ with BuildPart() as light_coil_ring:
                 align=[Align.MAX, Align.CENTER],
                 mode=Mode.SUBTRACT
             )
-        with Locations((height / 2 * -1 + 1.5, width / 2 * -1)):
-            Rectangle(
-                2,
-                width / 2,
-                mode=Mode.SUBTRACT,
-                rotation=45,
-                align=[Align.MAX, Align.MIN]
-            )
-        with Locations((height / 2 * -1 + 1.5, width / 2)):
-            Rectangle(
-                2,
-                width / 2,
-                mode=Mode.SUBTRACT,
-                rotation=-45,
-                align=[Align.MAX, Align.MAX]
-            )
-        with Locations((height / 2 * -1 + 1.5, 0)):
-            Rectangle(
-                1.5,
-                1.5,
-                mode=Mode.SUBTRACT,
-                rotation=-45,
-                align=[Align.MAX, Align.MAX]
-            )
 
     # Makes the 2d shape into a coil
     sweep(
@@ -94,26 +70,26 @@ with BuildPart() as light_coil_ring:
         is_frenet=True,
     )
 
-    # with Locations((0, 0, 0)):
-    #     num_steps = pitch / layer_height
-    #     for i in range(math.ceil(num_steps)):
-    #         theta_i = (2 * math.pi / num_steps) * i
-    #         offset = (pitch / (2 * math.pi)) * theta_i
-    #         # TODO: Offset it by half the width of the spacer so that it doesn't "overhang" at all on the first support
-    #         # circumference = coil_radius * 2 * math.pi
-    #         # offset_theta = 0.5 / circumference
-    #         with PolarLocations(coil_radius, 1, start_angle=math.degrees(theta_i), rotate=True):
-    #             # Calculate for each ring of the slinky
-    #             for j in range(turns):
-    #                 with Locations((0, 0, offset + (height / 2) + (j * pitch) + 0.06)):
-    #                     Box(
-    #                         1,
-    #                         width,
-    #                         0.12,
-    #                         align=[Align.CENTER, Align.CENTER, Align.MIN],
-    #                         rotation=(0, 0, 90),
-    #                         mode=Mode.ADD
-    #                     )
+    with Locations((0, 0, 0)):
+        num_steps = pitch / layer_height
+        for i in range(math.ceil(num_steps)):
+            theta_i = (2 * math.pi / num_steps) * i
+            offset = (pitch / (2 * math.pi)) * theta_i
+            # TODO: Offset it by half the width of the spacer so that it doesn't "overhang" at all on the first support
+            # circumference = coil_radius * 2 * math.pi
+            # offset_theta = 0.5 / circumference
+            with PolarLocations(coil_radius, 1, start_angle=math.degrees(theta_i), rotate=True):
+                # Calculate for each ring of the slinky
+                for j in range(turns):
+                    with Locations((0, 0, offset + (height / 2) + (j * pitch) + 0.06)):
+                        Box(
+                            1,
+                            width,
+                            0.12,
+                            align=[Align.CENTER, Align.CENTER, Align.MIN],
+                            rotation=(0, 0, 90),
+                            mode=Mode.ADD
+                        )
 
     # Delete the button of the slinky
     # with Locations((0, 0, 0)):
@@ -138,13 +114,7 @@ with BuildPart() as light_coil:
     with Locations((0, 0, 0)):
         Cylinder(
             height=height,
-            radius=coil_radius + 2.5,
-            mode=Mode.ADD
-        )
-
-        Cylinder(
-            height=height,
-            radius=coil_radius - width + 2.5,
+            radius=coil_radius + 3,
             mode=Mode.SUBTRACT
         )
 
@@ -215,7 +185,7 @@ exporter.add_meta_data(
     must_preserve=False,
 )
 exporter.add_code_to_metadata()
-exporter.write("light_coil_debug-45-cut-small.3mf")
+exporter.write("light_coil_debug-wide_not-touching.3mf")
 # exporter.write("example.stl")
 print("successful export")
 

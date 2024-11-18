@@ -1,3 +1,5 @@
+import datetime
+import json
 import math
 
 from build123d import *
@@ -5,24 +7,29 @@ from ocp_vscode import *
 
 MM = 1
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 # Can be 'coil' or 'bar'
-GENERATED_SHAPE = 'bar'
-number_of_coils = 4
+GENERATED_SHAPE = 'coil'
+number_of_coils = 40
 
-layer_height_small = 0.12 * MM
+layer_height_small = 0.18 * MM
 layer_height_medium = 0.2 * MM
+layer_height_06 = 0.24 * MM
+layer_height_08 = 0.34 * MM
 # layer_height_large = 0.3 * MM
 
-layer_width = 0.42 * MM
+layer_width = 0.82 * MM
+# layer_width = 0.62 * MM
 gap_modifier_small = 1
-gap_modifier_big = 2
+gap_modifier_big = 2.3
 
 # variations for both of these
-wide_width = 13
+wide_width = math.ceil(12 / (layer_width / 0.42))
 narrow_width = 10
 
-normal_height = 27
+normal_height = 22
+# coil_diameter = 85.3
+coil_diameter = 83
 
 # Size of the hole in the coil
 cutout_height = 1.6 * MM
@@ -69,30 +76,57 @@ class LightCoilPrintConfig:
         self.bottom_cutout_size = bottom_cutout_size
         self.output_name = output_name
 
+    # JSON serialize function
+    def __dict__(self):
+        return {
+            'gap_modifier': self.gap_modifier,
+            'width_units': self.width_units,
+            'height_units': self.height_units,
+            'layer_height': self.layer_height,
+            'layer_width': self.layer_width,
+            'coil_width': self.coil_width,
+            'number_of_coils': self.number_of_coils,
+            'cutout_height': self.cutout_height,
+            'bottom_cutout_size': self.bottom_cutout_size,
+            'output_name': self.output_name
+        }
+
 
 def get_print_configs():
     # Generate the print configurations
     print_configs = []
-    # Small gap (1x layer height) had best adhesion during testing.
-    for gap_modifier in [gap_modifier_small]:
-        for width_units in [wide_width, narrow_width]:
+    # The gap (2x layer height) had best adhesion during testing.
+    for gap_modifier in [
+        gap_modifier_big,
+        # gap_modifier_small
+    ]:
+        for width_units in [
+            wide_width,
+            # narrow_width
+        ]:
             for height_units in [normal_height]:
-                for layer_height in [layer_height_small, layer_height_medium]:
-                    for bottom_cutout_size in [0, bottom_cutout_size_small, bottom_cutout_size_medium, bottom_cutout_size_large]:
-                        print_configs.append(
-                            LightCoilPrintConfig(
-                                gap_modifier,
-                                width_units,
-                                height_units,
-                                layer_height,
-                                layer_width,
-                                85.3 * MM,
-                                number_of_coils,
-                                cutout_height,
-                                bottom_cutout_size,
-                                f"generated/light_{GENERATED_SHAPE}__{number_of_coils}-coils_{layer_height}h_{gap_modifier}x-gap_{width_units}-wide_{height_units}-high_{bottom_cutout_size}-bcs.3mf"
-                            )
+                for layer_height in [layer_height_08]:
+                    for bottom_cutout_size in [
+                        0,
+                        # bottom_cutout_size_small, bottom_cutout_size_medium, bottom_cutout_size_large
+                        ]:
+                        slinky_config = LightCoilPrintConfig(
+                            gap_modifier,
+                            width_units,
+                            height_units,
+                            layer_height,
+                            layer_width,
+                            coil_diameter * MM,
+                            number_of_coils,
+                            cutout_height,
+                            bottom_cutout_size,
+                            f"generated/{GENERATED_SHAPE}__{number_of_coils}c_{layer_height}h_{layer_width}mm_{width_units}w_{normal_height}h_{gap_modifier}x.3mf"
                         )
+                        print_configs.append(slinky_config)
+                        # Serialize config to JSON file
+                        current_date_with_hour = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                        with open(f"generated/json/{current_date_with_hour}_{GENERATED_SHAPE}__{number_of_coils}c_{layer_height}h_{layer_width}mm_{width_units}w_{normal_height}h_{gap_modifier}x.json", 'w') as f:
+                            f.write(json.dumps(slinky_config.__dict__(), indent=4))
     return print_configs
 
 
@@ -115,6 +149,8 @@ def generate_part(config):
     height = math.ceil(height_units * size_modifier) * layer_height * MM
     width = math.ceil(width_units) * layer_width * MM
 
+    print(f"height: {height}, width: {width}")
+
     # Printing parameters
     coil_spacer = layer_height * gap_modifier
 
@@ -124,6 +160,24 @@ def generate_part(config):
     pitch = height + coil_spacer  # Distance between consecutive loops
     coil_height = turns * pitch  # Total height of the coil
 
+    # with BuildPart() as fiber_optic_holder:
+    #     with BuildSketch() as triangle_sketch:
+    #         # Create an equilateral triangle with sides of 5mm
+    #         triangle_radius = 5 / (2 * math.sin(math.pi / 3))
+    #         RegularPolygon(radius=triangle_radius, side_count=3)
+    #         # Create a hexagonal hole in the middle
+    #         RegularPolygon(radius=1.5 / 2, side_count=6, mode=Mode.SUBTRACT)
+    #     # Extrude the 2D triangle to a 3D shape of 10mm height
+    #     extrude(amount=5 * MM)
+
+    # show(
+    #     fiber_optic_holder,
+    #     axes=True,
+    #     axes0=True,
+    #     grid=(True, True, True),
+    #     ticks=25,
+    #     transparent=True
+    # )
     with BuildPart() as light_coil_ring:
         if GENERATED_SHAPE == 'coil':
             with BuildLine() as coil_path:
@@ -137,26 +191,24 @@ def generate_part(config):
                     direction=(0, 0, 1)  # Helix along the Z-axis
                 )
 
-
         plane = Plane.ZY
 
         if GENERATED_SHAPE == 'coil':
             # Positions the block at the start of the coil
             plane = Plane(origin=helix @ 0, z_dir=helix % 0)
 
-
         # switch based on GENERATED_SHAPE
         with BuildSketch(
             plane
         ) as base_slinky:
-            Rectangle(height, width)
-            with Locations((height / 2 - cutout_height / 2, 0)):
-                RegularPolygon(
-                    1.5 / 2,
-                    side_count=6,
-                    align=[Align.MAX, Align.CENTER],
-                    mode=Mode.SUBTRACT
-                )
+            Rectangle(width, height, rotation=90)
+            # with Locations((height / 2 - cutout_height / 2, 0)):
+            #     RegularPolygon(
+            #         1.5 / 2,
+            #         side_count=6,
+            #         align=[Align.MAX, Align.CENTER],
+            #         mode=Mode.SUBTRACT
+            #     )
             with Locations((height / 2 * -1 + 1.5, width / 2 * -1)):
                 Rectangle(
                     2,
@@ -175,14 +227,14 @@ def generate_part(config):
                 )
 
             # Create a small cut at the center to help reduce layers binding
-            with Locations((height / 2 * -1 + bottom_cutout_size, 0)):
-                Rectangle(
-                    bottom_cutout_size,
-                    bottom_cutout_size,
-                    mode=Mode.SUBTRACT,
-                    rotation=-45,
-                    align=[Align.MAX, Align.MAX]
-                )
+            # with Locations((height / 2 * -1 + bottom_cutout_size, 0)):
+            #     Rectangle(
+            #         bottom_cutout_size,
+            #         bottom_cutout_size,
+            #         mode=Mode.SUBTRACT,
+            #         rotation=-45,
+            #         align=[Align.MAX, Align.MAX]
+            #     )
 
         if GENERATED_SHAPE == 'coil':
             # Makes the 2D shape into a coil
@@ -255,5 +307,4 @@ for config in print_configs:
             ticks=25,
             transparent=True
         )
-        break
     export_shape(build_part, config.output_name)

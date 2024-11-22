@@ -10,7 +10,7 @@ MM = 1
 DEBUG_MODE = False
 # Can be 'coil' or 'bar'
 GENERATED_SHAPE = 'coil'
-number_of_coils = 5
+number_of_coils = 38
 
 layer_height_small = 0.18 * MM
 layer_height_medium = 0.2 * MM
@@ -21,10 +21,10 @@ layer_height_08 = 0.34 * MM
 layer_width = 0.82 * MM
 # layer_width = 0.62 * MM
 gap_modifier_small = 2.5
-gap_modifier_big = 2.7
+gap_modifier_big = 2.75
 
 # variations for both of these
-wide_width = 6.0 #math.ceil(12 / (layer_width / 0.42))
+wide_width = 6.12 #math.ceil(12 / (layer_width / 0.42))
 narrow_width = 10
 
 normal_height = 24
@@ -148,7 +148,7 @@ def generate_part(config):
 
     # Calculate derived variables
     height = math.ceil(height_units * size_modifier) * layer_height * MM
-    width = math.ceil(width_units) * layer_width * MM
+    width = width_units * MM #math.ceil(width_units) * layer_width * MM
 
     print(f"height: {height}, width: {width}")
 
@@ -281,30 +281,31 @@ def generate_part(config):
                     rotation=(20, -10, 70),
                 )
 
+            top_spacer = 0.1
+
             # Add a spacer at the top of the coil
-            with Locations((0, 0, number_of_coils * pitch)):
+            with Locations((0, 0, number_of_coils * pitch - top_spacer)):
                 Cylinder(
-                    height=height,
+                    height=height + top_spacer * 2,
                     radius=coil_radius + 3.5,
                     mode=Mode.ADD
                 )
 
                 Cylinder(
-                    height=height,
+                    height=height + top_spacer * 2,
                     radius=coil_radius - width + 3.5,
                     mode=Mode.SUBTRACT
                 )
-            print(slinky_end.location.position)
 
             # Delete a cutout at the end of the coil
             with Locations(
                     slinky_end.location.position +
-                    (0, 0, number_of_coils * pitch - pitch)
+                    (0, 0, number_of_coils * pitch - pitch - top_spacer / 2)
             ):
                 Box(
-                    0.4,
-                    width + 2,
-                    height + 1,
+                    0.44,
+                    width + 2.2,
+                    height + 1 + top_spacer * 2,
                     mode=Mode.SUBTRACT,
                     rotation=(20, -10, 70),
                     )

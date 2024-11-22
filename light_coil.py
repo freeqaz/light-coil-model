@@ -7,10 +7,10 @@ from ocp_vscode import *
 
 MM = 1
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 # Can be 'coil' or 'bar'
 GENERATED_SHAPE = 'coil'
-number_of_coils = 40
+number_of_coils = 5
 
 layer_height_small = 0.18 * MM
 layer_height_medium = 0.2 * MM
@@ -20,16 +20,16 @@ layer_height_08 = 0.34 * MM
 
 layer_width = 0.82 * MM
 # layer_width = 0.62 * MM
-gap_modifier_small = 1
-gap_modifier_big = 2.3
+gap_modifier_small = 2.5
+gap_modifier_big = 2.7
 
 # variations for both of these
-wide_width = math.ceil(12 / (layer_width / 0.42))
+wide_width = math.ceil(14 / (layer_width / 0.42))
 narrow_width = 10
 
-normal_height = 22
+normal_height = 19
 # coil_diameter = 85.3
-coil_diameter = 83
+coil_diameter = 84.5
 
 # Size of the hole in the coil
 cutout_height = 1.6 * MM
@@ -98,7 +98,7 @@ def get_print_configs():
     # The gap (2x layer height) had best adhesion during testing.
     for gap_modifier in [
         gap_modifier_big,
-        # gap_modifier_small
+        gap_modifier_small
     ]:
         for width_units in [
             wide_width,
@@ -110,6 +110,7 @@ def get_print_configs():
                         0,
                         # bottom_cutout_size_small, bottom_cutout_size_medium, bottom_cutout_size_large
                         ]:
+                        current_date_with_hour = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
                         slinky_config = LightCoilPrintConfig(
                             gap_modifier,
                             width_units,
@@ -120,13 +121,13 @@ def get_print_configs():
                             number_of_coils,
                             cutout_height,
                             bottom_cutout_size,
-                            f"generated/{GENERATED_SHAPE}__{number_of_coils}c_{layer_height}h_{layer_width}mm_{width_units}w_{normal_height}h_{gap_modifier}x.3mf"
+                            f"generated/{current_date_with_hour}_{GENERATED_SHAPE}__{number_of_coils}c_{layer_height}h_{layer_width}mm_{width_units}w_{normal_height}h_{gap_modifier}x.3mf"
                         )
                         print_configs.append(slinky_config)
-                        # Serialize config to JSON file
-                        current_date_with_hour = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                        with open(f"generated/json/{current_date_with_hour}_{GENERATED_SHAPE}__{number_of_coils}c_{layer_height}h_{layer_width}mm_{width_units}w_{normal_height}h_{gap_modifier}x.json", 'w') as f:
-                            f.write(json.dumps(slinky_config.__dict__(), indent=4))
+                        if (DEBUG_MODE == False):
+                            # Serialize config to JSON file
+                            with open(f"generated/json/{current_date_with_hour}_{GENERATED_SHAPE}__{number_of_coils}c_{layer_height}h_{layer_width}mm_{width_units}w_{normal_height}h_{gap_modifier}x.json", 'w') as f:
+                                f.write(json.dumps(slinky_config.__dict__(), indent=4))
     return print_configs
 
 
@@ -191,15 +192,16 @@ def generate_part(config):
                     direction=(0, 0, 1)  # Helix along the Z-axis
                 )
 
-        plane = Plane.ZY
+        slinky_start = Plane.ZY
 
         if GENERATED_SHAPE == 'coil':
             # Positions the block at the start of the coil
-            plane = Plane(origin=helix @ 0, z_dir=helix % 0)
+            slinky_start = Plane(origin=helix @ 0, z_dir=helix % 0)
+            slinky_end = Plane(origin=helix @ 1, z_dir=helix % 1)
 
         # switch based on GENERATED_SHAPE
         with BuildSketch(
-            plane
+            slinky_start
         ) as base_slinky:
             Rectangle(width, height, rotation=90)
             # with Locations((height / 2 - cutout_height / 2, 0)):
@@ -259,15 +261,53 @@ def generate_part(config):
             with Locations((0, 0, 0)):
                 Cylinder(
                     height=height,
-                    radius=coil_radius + 2.5,
+                    radius=coil_radius + 3.5,
                     mode=Mode.ADD
                 )
 
                 Cylinder(
                     height=height,
-                    radius=coil_radius - width + 2.5,
+                    radius=coil_radius - width + 3.5,
                     mode=Mode.SUBTRACT
                 )
+
+            # Delete a cutout at the start of the coil
+            with Locations(slinky_start.location.position - (0, 0, 0)):
+                Box(
+                    0.4,
+                    width + 2,
+                    height + 1.125,
+                    mode=Mode.SUBTRACT,
+                    rotation=(20, -10, 70),
+                )
+
+            # Add a spacer at the top of the coil
+            with Locations((0, 0, number_of_coils * pitch)):
+                Cylinder(
+                    height=height,
+                    radius=coil_radius + 3.5,
+                    mode=Mode.ADD
+                )
+
+                Cylinder(
+                    height=height,
+                    radius=coil_radius - width + 3.5,
+                    mode=Mode.SUBTRACT
+                )
+            print(slinky_end.location.position)
+
+            # Delete a cutout at the end of the coil
+            with Locations(
+                    slinky_end.location.position +
+                    (0, 0, number_of_coils * pitch - pitch)
+            ):
+                Box(
+                    0.4,
+                    width + 2,
+                    height + 1,
+                    mode=Mode.SUBTRACT,
+                    rotation=(20, -10, 70),
+                    )
 
     return config, light_coil
 
@@ -307,4 +347,5 @@ for config in print_configs:
             ticks=25,
             transparent=True
         )
-    export_shape(build_part, config.output_name)
+    if DEBUG_MODE == False:
+        export_shape(build_part, config.output_name)

@@ -24,10 +24,10 @@ gap_modifier_small = 2.5
 gap_modifier_big = 2.7
 
 # variations for both of these
-wide_width = math.ceil(14 / (layer_width / 0.42))
+wide_width = 6.0 #math.ceil(12 / (layer_width / 0.42))
 narrow_width = 10
 
-normal_height = 19
+normal_height = 24
 # coil_diameter = 85.3
 coil_diameter = 84.5
 

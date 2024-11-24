@@ -10,7 +10,12 @@ MM = 1
 DEBUG_MODE = False
 # Can be 'coil' or 'bar'
 GENERATED_SHAPE = 'coil'
-number_of_coils = 38
+# short
+# number_of_coils = 32
+# mid-length
+number_of_coils = 35
+# long
+# number_of_coils = 38
 
 layer_height_small = 0.18 * MM
 layer_height_medium = 0.2 * MM
@@ -20,16 +25,24 @@ layer_height_08 = 0.34 * MM
 
 layer_width = 0.82 * MM
 # layer_width = 0.62 * MM
+
+# PC gap
 gap_modifier_small = 2.5
+# PETG gap
+# gap_modifier_small = 2.5
 gap_modifier_big = 2.75
 
 # variations for both of these
-wide_width = 6.12 #math.ceil(12 / (layer_width / 0.42))
+wide_width = 0.82 * 7 #math.ceil(10 / (layer_width / 0.42))
 narrow_width = 10
 
 normal_height = 24
 # coil_diameter = 85.3
-coil_diameter = 84.5
+coil_diameter = 84.6
+# for griffin's big hands
+# coil_diameter = 87.5
+# for nova's small hands
+# coil_diameter = 80
 
 # Size of the hole in the coil
 cutout_height = 1.6 * MM
@@ -97,7 +110,7 @@ def get_print_configs():
     print_configs = []
     # The gap (2x layer height) had best adhesion during testing.
     for gap_modifier in [
-        gap_modifier_big,
+        # gap_modifier_big,
         gap_modifier_small
     ]:
         for width_units in [
@@ -256,18 +269,21 @@ def generate_part(config):
             with Locations((0, 0, i * pitch)):
                 add(light_coil_ring.part)
 
+        # coil_offset = 2.8
+        coil_offset = 3.2
+
         if GENERATED_SHAPE == 'coil':
             # Add a spacer at the bottom of the coil
             with Locations((0, 0, 0)):
                 Cylinder(
                     height=height,
-                    radius=coil_radius + 3.5,
+                    radius=coil_radius + coil_offset,
                     mode=Mode.ADD
                 )
 
                 Cylinder(
                     height=height,
-                    radius=coil_radius - width + 3.5,
+                    radius=coil_radius - width + coil_offset,
                     mode=Mode.SUBTRACT
                 )
 
@@ -287,13 +303,13 @@ def generate_part(config):
             with Locations((0, 0, number_of_coils * pitch - top_spacer)):
                 Cylinder(
                     height=height + top_spacer * 2,
-                    radius=coil_radius + 3.5,
+                    radius=coil_radius + coil_offset,
                     mode=Mode.ADD
                 )
 
                 Cylinder(
                     height=height + top_spacer * 2,
-                    radius=coil_radius - width + 3.5,
+                    radius=coil_radius - width + coil_offset,
                     mode=Mode.SUBTRACT
                 )
 

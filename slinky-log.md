@@ -22,3 +22,17 @@ Also testing 2024-11-19_12-40-42_coil__5c_0.34h_0.82mm_8w_19h_2.7x.3mf to see if
 
 Trying to replicate the slinky from Subtronics that was printed with 0.6mm nozzle. This one is the same dimensions, though
 slightlyyy wider which I think should improve the slop. Hopefully it comes out well!
+
+Results: Solid but maybe a little too rigid. Going to round it down by a bit and try again.
+
+Also a bit too long. Decreasing coil radius to 81mm for Nova.
+
+4. 2024-11-22_15-04-54_coil__36c_0.34h_0.82mm_5.739999999999999w_24h_2.5x.3mf
+
+Champion. So good!
+
+5. Polycarbonate -- clear from Bambu Labs
+
+It printed well at 2.3x. It looks like it used the same config I have for PETG which is wild that it worked so well on the first try. 
+
+Going to print 2024-11-24_13-50-52_coil__35c_0.34h_0.82mm_5.739999999999999w_24h_2.5x.3mf now

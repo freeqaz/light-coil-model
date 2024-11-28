@@ -36,3 +36,32 @@ Champion. So good!
 It printed well at 2.3x. It looks like it used the same config I have for PETG which is wild that it worked so well on the first try. 
 
 Going to print 2024-11-24_13-50-52_coil__35c_0.34h_0.82mm_5.739999999999999w_24h_2.5x.3mf now
+
+6. PC one I think and something else
+
+Going to test with "Print infill first" and "Only one wall on top surface: not applied" to see how that influences the print.
+
+I'm hoping it will reduce stringing because it seems like that happens when the infill prints. Could maybe mitigate with
+an "even" number of walls versus odd right now (for 5.4mm width)
+
+Preset name: 0.40mm Standard @BBL X1C 0.8 nozzle - Copy7
+
+Print infill first is NOT the setting. Holy cow the stringing is apocalyptic!
+
+7. Two clear ones printed with 2.3x and 2.5x
+
+2.3x is definitely harder to pull apart. Unclear if it looks better or not. Doesn't really seem worth it over 2.5x.
+
+For PETG-CF it seems like 2.5x isn't enough because the one I printed in white with ... some brand ... was very hard
+to separate.
+
+Going to try printing a test with `2024-11-26_19-59-56_coil__4c_0.34h_0.82mm_5.739999999999999w_24h_2.75x.3mf` and see
+if it prints well at 2.75x in a pink one by ["TINMORRY" from Amazon](https://www.amazon.com/gp/product/B0DDGNP17M).
+
+Okay, wow... so it did come apart but the lines look like trash for the first few layers. It feels like pretty
+significant underextrusion. Going to try again with a smaller gap size and see.
+
+Bar tests:
+Thick bridges is bad for this. Just makes it look really janky.
+
+Going to try decreasing width to 0.6mm and see (0.8mm nozzle).

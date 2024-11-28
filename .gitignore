@@ -1,3 +1,6 @@
 miniforge.sh
 .idea
-*.3mf
+generated/*
+prusa/*
+desk_corner1.3mf
+nova_desk_corners.py

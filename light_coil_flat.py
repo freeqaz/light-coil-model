@@ -35,25 +35,86 @@ turns = 1  # Number of turns
 pitch = height + coil_spacer  # Distance between consecutive loops
 coil_height = turns * pitch  # Total height of the coil
 
-number_of_coils = 4
+number_of_coils = 1
 
+with BuildLine() as coil_path_ignored:
+    upper_coil = CenterArc(
+        center=(0, 0, pitch),
+        radius=coil_radius,
+        start_angle=350,
+        arc_size=360,
+    )
+
+    upper_coil2 = CenterArc(
+        center=(0, 0, pitch * 2),
+        radius=coil_radius,
+        start_angle=350,
+        arc_size=360,
+    )
 
 with BuildPart() as light_coil_ring:
-    # with Locations((0, 0, -coil_spacing)):
+
+
     with BuildLine() as coil_path:
-        # Defines a coil shape
-        helix = Helix(
-            pitch=pitch,
-            height=coil_height,
-            radius=coil_radius,
-            cone_angle=0,
+        main_coil = CenterArc(
             center=(0, 0, 0),
-            direction=(0, 0, 1)  # Helix along the Z-axis
+            radius=coil_radius,
+            start_angle=0,
+            arc_size=350,
         )
+        mid_x = coil_radius * math.cos(math.radians(354))
+        mid_y = coil_radius * math.sin(math.radians(354))
+        end_x = coil_radius * math.cos(math.radians(359))
+        end_y = coil_radius * math.sin(math.radians(359))
+        print(main_coil % 1)
+        print( upper_coil % 0)
+        connector = TangentArc(
+            [
+                main_coil @ 1,
+                (mid_x, mid_y, coil_height / 2),
+                # upper_coil @ 0
+                # (0, 0, coil_height),
+            ],
+            tangent=main_coil % 1,
+            # tangents=[
+            #     main_coil % 1,
+            #     (0, 1, 0)
+            # ],
+        )
+        connector2 = TangentArc(
+            [
+                # main_coil @ 1,
+                (mid_x, mid_y, coil_height / 2),
+                # (0, 0, coil_height),
+                upper_coil @ 1
+            ],
+            tangent=upper_coil % 1,
+            # tangent_from_first=False,
+            # tangents=[
+            #     main_coil % 1,
+            #     (0, 1, 0)
+            # ],
+        )
+        #
+        # JernArc(
+        #     start=connector2 @ 1,
+        #     radius=coil_radius,
+        #     tangent=upper_coil % 0,
+        #     arc_size=2,
+        # )
+        # # Make flush with the start of next ring
+        # DoubleTangentArc(
+        #     [
+        #         connector2 @ 1,
+        #         upper_coil @ 0
+        #     ],
+        #     tangent=connector2 % 1,
+        #     other=upper_coil % 0
+        # )
 
     with BuildSketch(
         # Positions the block at the start of the coil
-        Plane(origin=helix @ 0, z_dir=helix % 0),
+        Plane(origin=main_coil @ 0, z_dir=main_coil % 0),
     ) as base_slinky:
         Rectangle(height, width)
         with Locations((height / 2 - cutout_height / 2, 0)):
@@ -70,26 +131,26 @@ with BuildPart() as light_coil_ring:
         is_frenet=True,
     )
 
-    with Locations((0, 0, 0)):
-        num_steps = pitch / layer_height
-        for i in range(math.ceil(num_steps)):
-            theta_i = (2 * math.pi / num_steps) * i
-            offset = (pitch / (2 * math.pi)) * theta_i
-            # TODO: Offset it by half the width of the spacer so that it doesn't "overhang" at all on the first support
-            # circumference = coil_radius * 2 * math.pi
-            # offset_theta = 0.5 / circumference
-            with PolarLocations(coil_radius, 1, start_angle=math.degrees(theta_i), rotate=True):
-                # Calculate for each ring of the slinky
-                for j in range(turns):
-                    with Locations((0, 0, offset + (height / 2) + (j * pitch) + 0.06)):
-                        Box(
-                            1,
-                            width,
-                            0.12,
-                            align=[Align.CENTER, Align.CENTER, Align.MIN],
-                            rotation=(0, 0, 90),
-                            mode=Mode.ADD
-                        )
+    # with Locations((coil_radius, 0, 0)):
+    #     num_steps = pitch / layer_height
+    #     for i in range(math.ceil(num_steps)):
+    #         theta_i = (2 * math.pi / num_steps) * i
+    #         offset = (pitch / (2 * math.pi)) * theta_i
+    #         # TODO: Offset it by half the width of the spacer so that it doesn't "overhang" at all on the first support
+    #         # circumference = coil_radius * 2 * math.pi
+    #         # offset_theta = 0.5 / circumference
+    #         with PolarLocations(coil_radius, 1, start_angle=math.degrees(theta_i), rotate=True):
+    #             # Calculate for each ring of the slinky
+    #             for j in range(turns):
+    #                 with Locations((0, 0, offset + (height / 2) + (j * pitch) + 0.06)):
+    #                     Box(
+    #                         1,
+    #                         width,
+    #                         0.12,
+    #                         align=[Align.CENTER, Align.CENTER, Align.MIN],
+    #                         rotation=(0, 0, 90),
+    #                         mode=Mode.ADD
+    #                     )
 
     # Delete the button of the slinky
     # with Locations((0, 0, 0)):
@@ -111,48 +172,14 @@ with BuildPart() as light_coil:
                 add(light_coil_ring.part)
 
     # Delete the part of the slinky
-    with Locations((0, 0, 0)):
-        Cylinder(
-            height=height,
-            radius=coil_radius + 3,
-            mode=Mode.SUBTRACT
-        )
+    # with Locations((0, 0, 0)):
+    #     Cylinder(
+    #         height=height,
+    #         radius=coil_radius + 3,
+    #         mode=Mode.SUBTRACT
+    #     )
 
 # light_coil = light_coil_ring
-
-def generate_with_top_hole():
-    with Locations((height / 2 - 0.4, width / 2 * -1)):
-        Rectangle(
-            0.4,
-            width / 2 - 1,
-            mode=Mode.SUBTRACT,
-            align=[Align.MIN, Align.MIN]
-        )
-    with Locations((height / 2 - 0.4, width / 2)):
-        Rectangle(
-            0.4,
-            width / 2 - 1,
-            mode=Mode.SUBTRACT,
-            align=[Align.MIN, Align.MAX]
-        )
-    with Locations((height / 2 * -1 + 0.8, width / 2 * -1)):
-        Rectangle(
-            0.8,
-            width / 2,
-            mode=Mode.SUBTRACT,
-            rotation=30,
-            align=[Align.MAX, Align.MIN]
-        )
-    with Locations((height / 2 * -1 + 0.8, width / 2)):
-        Rectangle(
-            0.8,
-            width / 2,
-            mode=Mode.SUBTRACT,
-            rotation=-30,
-            align=[Align.MAX, Align.MAX]
-        )
-    with Locations((height / 2 - cutout_height / 2, 0)):
-        Polygon(cutout_pnts, rotation=-90, mode=Mode.SUBTRACT)
 
 
 show(
@@ -163,9 +190,6 @@ show(
     ticks=25,
     transparent=True
 )
-
-# light_coil = Solid.make_cone(20, 0, 50)
-
 
 light_coil.color = Color("blue")
 light_coil.label = "blue"
@@ -185,8 +209,8 @@ exporter.add_meta_data(
     must_preserve=False,
 )
 exporter.add_code_to_metadata()
-exporter.write("light_coil_debug-wide_not-touching.3mf")
-# exporter.write("example.stl")
+exporter.write("light_coil_flat-test1.3mf")
+# # exporter.write("example.stl")
 print("successful export")
 
 # exporter = ExportDXF(unit=Unit.MM)

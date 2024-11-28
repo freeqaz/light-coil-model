@@ -10,12 +10,15 @@ MM = 1
 DEBUG_MODE = False
 # Can be 'coil' or 'bar'
 GENERATED_SHAPE = 'coil'
+# GENERATED_SHAPE = 'bar'
 # short
 # number_of_coils = 32
 # mid-length
-number_of_coils = 35
+# number_of_coils = 36
 # long
 # number_of_coils = 38
+# TJ
+number_of_coils = 46
 
 layer_height_small = 0.18 * MM
 layer_height_medium = 0.2 * MM
@@ -23,18 +26,29 @@ layer_height_06 = 0.24 * MM
 layer_height_08 = 0.34 * MM
 # layer_height_large = 0.3 * MM
 
+# 0.8mm nozzle
 layer_width = 0.82 * MM
+# 0.6mm nozzle
 # layer_width = 0.62 * MM
+# 0.4mm nozzle
+# layer_width = 0.42 * MM
 
 # PC gap
-gap_modifier_small = 2.5
+# gap_modifier_small = 2.3
 # PETG gap
-# gap_modifier_small = 2.5
-gap_modifier_big = 2.75
+gap_modifier_small = 2.5
+# PETG-CF gap
+# gap_modifier_smaller = 1.5
+# gap_modifier_small = 1.75
+# gap_modifier_big = 2.0
+# gap_modifier_bigger = 2.25
+# gap_modifier_biggest = 2.5
 
 # variations for both of these
-wide_width = 0.82 * 7 #math.ceil(10 / (layer_width / 0.42))
-narrow_width = 10
+# Hardcoded for 0.8mm nozzle
+# TODO: Tweak these for 0.4mm and 0.6mm nozzles
+wide_width = 0.82 * 7
+narrow_width = 0.82 * 6
 
 normal_height = 24
 # coil_diameter = 85.3
@@ -110,8 +124,11 @@ def get_print_configs():
     print_configs = []
     # The gap (2x layer height) had best adhesion during testing.
     for gap_modifier in [
+        # gap_modifier_smaller,
+        gap_modifier_small,
         # gap_modifier_big,
-        gap_modifier_small
+        # gap_modifier_bigger,
+        # gap_modifier_biggest
     ]:
         for width_units in [
             wide_width,
@@ -216,6 +233,11 @@ def generate_part(config):
         with BuildSketch(
             slinky_start
         ) as base_slinky:
+            # OG
+            # slant_offset = 1.5
+            # Test
+            slant_offset = 1.25
+
             Rectangle(width, height, rotation=90)
             # with Locations((height / 2 - cutout_height / 2, 0)):
             #     RegularPolygon(
@@ -224,7 +246,7 @@ def generate_part(config):
             #         align=[Align.MAX, Align.CENTER],
             #         mode=Mode.SUBTRACT
             #     )
-            with Locations((height / 2 * -1 + 1.5, width / 2 * -1)):
+            with Locations((height / 2 * -1 + slant_offset, width / 2 * -1)):
                 Rectangle(
                     2,
                     width / 2,
@@ -232,7 +254,7 @@ def generate_part(config):
                     rotation=45,
                     align=[Align.MAX, Align.MIN]
                 )
-            with Locations((height / 2 * -1 + 1.5, width / 2)):
+            with Locations((height / 2 * -1 + slant_offset, width / 2)):
                 Rectangle(
                     2,
                     width / 2,
@@ -265,7 +287,8 @@ def generate_part(config):
 
     # Stack the coils
     with BuildPart() as light_coil:
-        for i in range(number_of_coils):
+        stack_height = number_of_coils if GENERATED_SHAPE == 'coil' else 3
+        for i in range(stack_height):
             with Locations((0, 0, i * pitch)):
                 add(light_coil_ring.part)
 
@@ -283,7 +306,7 @@ def generate_part(config):
 
                 Cylinder(
                     height=height,
-                    radius=coil_radius - width + coil_offset,
+                    radius=coil_radius - width + coil_offset - 0.2,
                     mode=Mode.SUBTRACT
                 )
 
@@ -309,7 +332,7 @@ def generate_part(config):
 
                 Cylinder(
                     height=height + top_spacer * 2,
-                    radius=coil_radius - width + coil_offset,
+                    radius=coil_radius - width + coil_offset - 0.2,
                     mode=Mode.SUBTRACT
                 )
 
